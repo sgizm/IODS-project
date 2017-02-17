@@ -39,4 +39,41 @@ corrplot(cor_matrix, method="circle", type="upper", cl.pos="b", tl.pos="d", tl.c
 ```
 
 Now the correlations can be interpreted better. Since we will be mostly working with the variable crim, let's look at that. We see that crim is correlated with the variables rad (cor=0.63) and tax (cor=0.58). Rad was showing index of accessibility to radial highways
-whereas tax indicates full-value property-tax rate per $10,000. Overall, strongest correlation seems to be between rad and tax variables. On the other end, we also see negative strong correlations such as ndus/dis, nox/dis and lstat/medv.
+whereas tax indicates full-value property-tax rate per $10,000. Overall, strongest correlation seems to be between rad and tax variables. On the other end, we also see negative strong correlations such as indus/dis, nox/dis and lstat/medv.
+
+#### Standardization
+We need to standardize the variables so that they fit the assumptions held by the classification method and the compare the variables to each other. Classification method assumes that the variables are normally distributed and variance is the same. 
+```{r}
+# standardizing the variables and the summary
+boston_scaled <- scale(Boston)
+summary(boston_scaled)
+```
+Next will be working on the crim variable:
+
+```{r}
+# putting it in a df
+boston_scaled <- as.data.frame(boston_scaled)
+scaled_crim <- boston_scaled$crim
+# creating a quantile vector of crim
+bins <- quantile(scaled_crim)
+# creating the categorical variable 'crime' and summarizing 
+crime <- cut(scaled_crim, breaks = bins, include.lowest = TRUE, labels=c("low", "med_low", "med_high", "high"))
+summary(crime)
+# dropping the old crime rate variables as asked
+boston_scaled <- dplyr::select(boston_scaled, -crim)
+# and adding the new categorical value to scaled data
+boston_scaled <- data.frame(boston_scaled, crime)
+```
+What is next is that the dataset needs to be divided into a training set and a testing set. nrow() will be used to get the number of rows and  select 80% of it randomly:
+
+```{r}
+n <- nrow(boston_scaled)
+ind <- sample(n,  size = n * 0.8)
+# further creating the train and test sets
+train <- boston_scaled[ind,]
+test <- boston_scaled[-ind,]
+# saving the correct classes from test data
+correct_classes <- test$crime
+# removing the crime variable from test data
+test <- dplyr::select(test, -crime)
+```
