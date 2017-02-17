@@ -1,7 +1,8 @@
 ## Clustering and Cassification Exercise
 17.02.2017
 
-We start with reading the Boston file right after including the libraries we need as usual
+We start with reading the Boston file right after including the libraries we need as usual:
+
 ```{r include = FALSE}
 library(dplyr)
 library(GGally)
@@ -11,10 +12,10 @@ library(corrplot)
 library(MASS)
 ```
 ```{r}
-# load the data
+# loading the data
 data("Boston")
 
-# explore the dataset
+# exploring
 str(Boston)
 dim(Boston)
 summary(Boston)
@@ -72,8 +73,89 @@ ind <- sample(n,  size = n * 0.8)
 # further creating the train and test sets
 train <- boston_scaled[ind,]
 test <- boston_scaled[-ind,]
+```
+
+#### LDA
+
+LDA is a classification method where the classes are known upfront. We will be using our already created classes:
+
+```{r}
+lda.fit <- lda(crime ~ ., data = train)
+lda.fit
+
+# the function for lda biplot arrows gotten from datacamp
+lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "red", tex = 0.75, choices = c(1,2)){
+  heads <- coef(x)
+  arrows(x0 = 0, y0 = 0, 
+         x1 = myscale * heads[,choices[1]], 
+         y1 = myscale * heads[,choices[2]], col=color, length = arrow_heads)
+  text(myscale * heads[,choices], labels = row.names(heads), 
+       cex = tex, col=color, pos=3)
+}
+
+classes <- as.numeric(train$crime)
+# plot the lda results
+plot(lda.fit, col= classes, pch = classes,  dimen = 2)
+lda.arrows(lda.fit, myscale = 1)
+```
+
+From the plot we can see that rad variable, that is radial highways, is associated with high crime rate. Next we will save the correct classes from the test data and remove the crime variable. After that, we will predict the classes with test data.
+```{r}
 # saving the correct classes from test data
 correct_classes <- test$crime
 # removing the crime variable from test data
 test <- dplyr::select(test, -crime)
+# predict with test data
+lda.pred <- predict(lda.fit, newdata = test)
+# cross tabulating the results
+table(correct = correct_classes, predicted = lda.pred$class)
 ```
+
+Results show that high crime rates were predicted quite good, whereas low ones show some uncertanities. 
+
+#### Distance and clusters
+
+After reloading and scaling the data we will look at the distance measures.
+
+```{r include= FALSE}
+# reloading the data, scaling and dataframing
+data("Boston")
+boston_scaled <- scale(Boston)
+boston_scaled <- as.data.frame(boston_scaled)
+# euclidean distance matrix
+dist_eu <- dist(Boston)
+# the summary of the distances
+summary(dist_eu)
+# manhattan distance matrix
+dist_man <- dist(Boston, method = 'manhattan')
+# the summary of the distances
+summary(dist_man)
+```
+
+Then we run the k-means clustering function:
+```{r}
+km <-kmeans(dist_eu, centers = 15)
+# and ploting the Boston dataset with clusters
+pairs(Boston, col = km$cluster)
+```
+
+Next is trying to find out the right number of clusters. We start with 10 as done in the datacamp. Then, we will use WCSS, that calculates the number of clusters for which the observations are closest to the center of the cluster. 
+
+```{r}
+set.seed(123)
+k_max <- 10
+# calculating the total within sum of squares
+twcss <- sapply(1:k_max, function(k){kmeans(dist_eu, k)$tot.withinss})
+# visualizing the results
+plot(1:k_max, twcss, type='b')
+```
+We see that where k_max = 2, there is a significant drop in the line graph, indicating that optimum number of classes is 2. Therefore, we k-means with centers = 2:
+
+```{r}
+# k-means clustering
+km <-kmeans(dist_eu, centers = 2)
+# ploting the Boston dataset with clusters
+pairs(Boston, col = km$cluster)
+```
+
+Two colors indicate the different classes, however, it is not easy to distinguish the correlations overall. Yet, crime variable is the most distinguisable with other variables.
