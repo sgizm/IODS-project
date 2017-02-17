@@ -1,6 +1,6 @@
 
-## Data Wrangling and Analysis Exercise
-## 03.02.2017
+## Regression Analysis Exercise
+03.02.2017
 
 *It includes the data preprocessing of an student data set and further analysis on regression modelling on certaion variables.*
 

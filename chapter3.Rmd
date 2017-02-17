@@ -1,6 +1,6 @@
 
 ## Logistic Regression Exercise
-## 10.02.2017
+10.02.2017
 
 *It includes the data preprocessing of an student data set and further analysis on logistic regression*
 We start with reading the file right after including the libraries we need as usual

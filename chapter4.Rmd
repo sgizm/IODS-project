@@ -1,0 +1,42 @@
+## Clustering and Cassification Exercise
+17.02.2017
+
+We start with reading the Boston file right after including the libraries we need as usual
+```{r include = FALSE}
+library(dplyr)
+library(GGally)
+library(ggplot2)
+library(boot)
+library(corrplot)
+library(MASS)
+```
+```{r}
+# load the data
+data("Boston")
+
+# explore the dataset
+str(Boston)
+dim(Boston)
+summary(Boston)
+```
+
+When we look at the variables we see housing values in the suburbs of Boston. There seem to be 14 variables and 506 observations.  All of the variables are continuous. The variable crim, that we will be mostly dealing with, refers to per capita crime rate. Graphical view:
+
+```{r}
+pairs(Boston)
+```
+
+We can see that some variables are actually strongly correlated, but perhaps it will help more if we look at the numbers with the correlations:
+
+```{r}
+cor_matrix <- cor(Boston) %>% round(digits = 2)
+cor_matrix
+```
+
+Still, it will help to visualize the correlations:
+```{r}
+corrplot(cor_matrix, method="circle", type="upper", cl.pos="b", tl.pos="d", tl.cex=0.6)
+```
+
+Now the correlations can be interpreted better. Since we will be mostly working with the variable crim, let's look at that. We see that crim is correlated with the variables rad (cor=0.63) and tax (cor=0.58). Rad was showing index of accessibility to radial highways
+whereas tax indicates full-value property-tax rate per $10,000. Overall, strongest correlation seems to be between rad and tax variables. On the other end, we also see negative strong correlations such as ndus/dis, nox/dis and lstat/medv.
